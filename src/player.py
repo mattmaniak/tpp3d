@@ -29,18 +29,18 @@ class Player(Actor):
     def __init__(self):
         """Load and set the player attribiutes."""
 
-        self.__ANIM_FPS = 20
-        self.__SPEED_M_PER_S = {"walk": 2, "run": 6}
-        self.__DEFAULT_RELATIVE_YAW_DEG = 180
         self.RELATIVE_Z_OFFSET_M = 0.0
-
-        self.__state = States.STOP
-        self.__running_is_toggled = False
-
         self.delta_vector_m = Vec3(0.0)
-        self.__delta_per_frame_m = 0.0  # Normalized step per frame.
-        self.__timer_ms = 0.0  # FSM timer.
+
+        self.__ANIM_FPS = 20
+        self.__DEFAULT_RELATIVE_YAW_DEG = 180
+        self.__SPEED_M_PER_S = {"walk": 2, "run": 6}
+
         self.__current_anim_frame_idx = 0
+        self.__delta_per_frame_m = 0.0  # Normalized step per frame.
+        self.__running_is_toggled = False
+        self.__state = States.STOP
+        self.__timer_ms = 0.0  # Finite-state machine timer.
 
         try:
             Actor.__init__(self, "../assets/ralph",
@@ -88,6 +88,13 @@ class Player(Actor):
         self.setH(rotation.limit_angle_to_360_deg(self.getH()))
 
         tpp_camera.change_position(Vec3(0, 0, self.delta_vector_m.getZ()))
+
+    def __follow_camera(self):
+        """Rotate the player's back to the camera."""
+
+        self.setH(self.__DEFAULT_RELATIVE_YAW_DEG
+                  - (controls.mouse_pos['x']
+                     * controls.MOUSE_SENSITIVITY_DEG))
 
     def __move_in_x_axis(self, tpp_camera: TPPCamera):
         """X-axis movement handling."""
@@ -152,23 +159,6 @@ class Player(Actor):
 
         self.__set_position(tpp_camera)
 
-    def __set_delta_per_frame_m(self):
-        """Set delta speed and optionally normalize it."""
-
-        if self.__running_is_toggled:
-            self.__delta_per_frame_m = self.__SPEED_M_PER_S["run"]
-        else:
-            self.__delta_per_frame_m = self.__SPEED_M_PER_S["walk"]
-
-        self.__delta_per_frame_m *= globalClock.getDt()
-
-    def __follow_camera(self):
-        """Rotate the player's back to the camera."""
-
-        self.setH(self.__DEFAULT_RELATIVE_YAW_DEG
-                  - (controls.mouse_pos['x']
-                     * controls.get_mouse_sensitivity_deg()))
-
     def __rotate_relatively_to_camera(self):
         """Mainly relative diagonal to camera movement handling."""
 
@@ -201,6 +191,15 @@ class Player(Actor):
 
         elif controls.pressed_keys[controls.Keymap.Player.go_backward]:
             self.setH(player_yaw + 180)
+
+    def __set_delta_per_frame_m(self):
+        """Set delta speed and optionally normalize it."""
+
+        if self.__running_is_toggled:
+            self.__delta_per_frame_m = self.__SPEED_M_PER_S["run"]
+        else:
+            self.__delta_per_frame_m = self.__SPEED_M_PER_S["walk"]
+        self.__delta_per_frame_m *= globalClock.getDt()
 
     def __set_position(self, tpp_camera: TPPCamera):
         """Adjust the player position and normalize the main vector."""
@@ -265,7 +264,7 @@ class Player(Actor):
 
         if controls.pressed_keys[controls.Keymap.Player.toggle_run]:
 
-            if self.__timer_ms >= controls.get_keypress_timeout_s():
+            if self.__timer_ms >= controls.KEYPRESS_TIMEOUT_S:
                 if self.__running_is_toggled:
                     self.__running_is_toggled = False
                 else:

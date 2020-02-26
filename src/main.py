@@ -7,7 +7,6 @@ import sys
 try:
     from direct.showbase.ShowBase import ShowBase
     from direct.task.Task import Task
-    from panda3d.core import load_prc_file_data
 except ModuleNotFoundError:
     sys.stderr.write("Panda3d not found.\n")
     exit()
@@ -25,9 +24,7 @@ class Application(ShowBase):
     def __init__(self):
         """Create the window and start the main loop."""
 
-        self.__configure_window()
         ShowBase.__init__(self)
-
         controls.setup_mouse()
         self.tpp_camera = TPPCamera()
 
@@ -37,7 +34,6 @@ class Application(ShowBase):
             raise
 
         self.physics = Physics(self.world.player)
-
         base.taskMgr.add(self.__main_loop, "__main_loop")
 
     def __del__(self):
@@ -46,17 +42,6 @@ class Application(ShowBase):
         del self.physics
         del self.world
         del self.tpp_camera
-
-    def __configure_window(self):
-        """Beutify the window."""
-
-        load_prc_file_data('', """
-            window-title tpp3d
-            icon-filename ../icon.png
-            fullscreen false
-            win-size 1280 720
-            sync-video false
-        """)
 
     def __main_loop(self, task: Task) -> Task:
         """Refresh between frames.

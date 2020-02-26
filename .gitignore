@@ -4,5 +4,4 @@ venv/
 dep/
 src/__pycache__/
 config/
-src/test.py
 logs/

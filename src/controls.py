@@ -9,8 +9,8 @@ except ModuleNotFoundError:
     exit()
 
 
-__MOUSE_SENSITIVITY_DEG = 60
-__KEYPRESS_TIMEOUT_S = 0.1
+MOUSE_SENSITIVITY_DEG = 60
+KEYPRESS_TIMEOUT_S = 0.1
 
 pressed_keys = {'w': False,
                 's': False,
@@ -36,33 +36,6 @@ class Keymap:
         toggle_crouch = "lcontrol"
 
 
-def get_mouse_sensitivity_deg() -> float:
-    """Return the mouse sensitivity."""
-    global __MOUSE_SENSITIVITY_DEG
-    return __MOUSE_SENSITIVITY_DEG
-
-
-def get_keypress_timeout_s() -> float:
-    """Return the keypress lock interval."""
-    global __KEYPRESS_TIMEOUT_S
-    return __KEYPRESS_TIMEOUT_S
-
-
-def setup_mouse():
-    """
-    Set the mouse mode from the absolute to the relative
-    (RPG-games-like).
-    """
-
-    new_mouse_settings = WindowProperties()
-    base.disableMouse()  # Disable default mouse steering.
-    new_mouse_settings.setCursorHidden(True)
-
-    # Enable infinite in-game mouse movement.
-    new_mouse_settings.setMouseMode(WindowProperties.M_relative)
-    base.win.requestProperties(new_mouse_settings)
-
-
 def handle_events():
     """Wrap keyboard and mouse calls."""
 
@@ -82,7 +55,7 @@ def limit_mouse_pos(min_pitch_deg: float, max_pitch_deg: float):
     max_pitch_deg -- how far can You look on the sky.
     """
 
-    global __MOUSE_SENSITIVITY_DEG
+    global MOUSE_SENSITIVITY_DEG
     global mouse_pos
 
     DEFAULT_POINTER_ID = 0
@@ -96,42 +69,44 @@ def limit_mouse_pos(min_pitch_deg: float, max_pitch_deg: float):
                                                      * mouse_pos['y'])
 
     # Push the mouse pointer maximally to the left.
-    if -mouse_pos['x'] * __MOUSE_SENSITIVITY_DEG < 0:
+    if -mouse_pos['x'] * MOUSE_SENSITIVITY_DEG < 0:
         mouse_x_onscreen_px = (window.getXSize() / 2) \
-            - (window.getXSize() / 2 * 360 / __MOUSE_SENSITIVITY_DEG)
+            - (window.getXSize() / 2 * 360 / MOUSE_SENSITIVITY_DEG)
 
     # Push the pointer to the default pos (center).
-    elif -mouse_pos['x'] * __MOUSE_SENSITIVITY_DEG > 360:
+    elif -mouse_pos['x'] * MOUSE_SENSITIVITY_DEG > 360:
         mouse_x_onscreen_px = window.getXSize() / 2
 
     # Mouse is too low.
-    if mouse_pos['y'] * __MOUSE_SENSITIVITY_DEG < min_pitch_deg:
+    if mouse_pos['y'] * MOUSE_SENSITIVITY_DEG < min_pitch_deg:
         mouse_y_onscreen_px = (window.getYSize() / 2) \
             - (window.getYSize() / 2 * min_pitch_deg /
-               __MOUSE_SENSITIVITY_DEG)
+               MOUSE_SENSITIVITY_DEG)
 
     # Mouse is too high.
-    elif mouse_pos['y'] * __MOUSE_SENSITIVITY_DEG > max_pitch_deg:
+    elif mouse_pos['y'] * MOUSE_SENSITIVITY_DEG > max_pitch_deg:
         # Konwersja pandowych koordynatów myszy na piksele na ekranie.
         mouse_y_onscreen_px = (window.getYSize() / 2) \
             - (window.getYSize() / 2 * max_pitch_deg /
-               __MOUSE_SENSITIVITY_DEG)
+               MOUSE_SENSITIVITY_DEG)
 
     base.win.movePointer(DEFAULT_POINTER_ID, int(mouse_x_onscreen_px),
                          int(mouse_y_onscreen_px))
 
 
-def __poll_keyboard():
-    """Look for keyboard events."""
+def setup_mouse():
+    """
+    Set the mouse mode from the absolute to the relative
+    (RPG-games-like).
+    """
 
-    global pressed_keys
+    new_mouse_settings = WindowProperties()
+    base.disableMouse()  # Disable default mouse steering.
+    new_mouse_settings.setCursorHidden(True)
 
-    for key in pressed_keys:
-        if base.mouseWatcherNode.is_button_down(key):
-            __set_key_state(key, "down")
-        else:
-            __set_key_state(key, "up")
-    base.accept("escape", sys.exit)
+    # Enable infinite in-game mouse movement.
+    new_mouse_settings.setMouseMode(WindowProperties.M_relative)
+    base.win.requestProperties(new_mouse_settings)
 
 
 def __assign_mouse_pos():
@@ -147,6 +122,19 @@ def __assign_mouse_pos():
 
         mouse_pos['x'] = mouse.getX()
         mouse_pos['y'] = mouse.getY()
+
+
+def __poll_keyboard():
+    """Look for keyboard events."""
+
+    global pressed_keys
+
+    for key in pressed_keys:
+        if base.mouseWatcherNode.is_button_down(key):
+            __set_key_state(key, "down")
+        else:
+            __set_key_state(key, "up")
+    base.accept("escape", sys.exit)
 
 
 def __set_key_state(key: str, state: str):

@@ -1,4 +1,4 @@
-# Third-person perspective camera for the Panda3D
+# <img src='icon.png' width='32'> Third-person perspective camera for the Panda3D
 Use the third-person camera with the Panda3D.
 
 ![image](screenshot.png "TPP3D screenshot")
